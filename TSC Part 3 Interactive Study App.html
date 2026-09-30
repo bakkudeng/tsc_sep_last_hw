@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TSC 3부분 완벽 대비 인터랙티브 학습기</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Noto Sans KR, Inter, Ma Shan Zheng for Chinese -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Noto Sans KR', 'Inter', sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+    }
+    .pinyin-text {
+      font-family: 'Inter', sans-serif;
+      letter-spacing: 0.02em;
+    }
+    .chinese-text {
+      letter-spacing: 0.04em;
+    }
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .active-tab {
+      background-color: #dc2626;
+      color: #ffffff;
+      box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50 antialiased selection:bg-red-500 selection:text-white">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center text-white shadow-md shadow-red-500/20 font-bold text-lg">
+          <i class="fa-solid fa-microphone-lines"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-red-100 text-red-700">기출 심화 마스터</span>
+            <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">총 20문항</span>
+          </div>
+          <h1 class="text-lg md:text-xl font-extrabold text-slate-800 leading-tight">TSC 3부분 기출 마스터 웹앱</h1>
+        </div>
+      </div>
+
+      <!-- Action Toggles -->
+      <div class="flex items-center gap-2">
+        <button id="togglePinyinBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-sm transition">
+          <i class="fa-solid fa-language text-red-500"></i>
+          <span id="pinyinBtnLabel">병음 항상 보기</span>
+        </button>
+        <button id="audioSpeedBtn" class="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-sm transition" title="발음 재생 속도">
+          <i class="fa-solid fa-gauge-high text-blue-500"></i>
+          <span id="speedLabel">1.0x</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="max-w-6xl mx-auto px-4 pt-1 flex gap-2 border-t border-slate-100 overflow-x-auto text-sm">
+      <button onclick="switchTab('study')" id="tab-btn-study" class="tab-btn py-2.5 px-4 font-bold rounded-t-lg transition flex items-center gap-2 active-tab">
+        <i class="fa-solid fa-book-open-reader"></i>
+        <span>문항 학습 & 모범답안</span>
+      </button>
+      <button onclick="switchTab('mock')" id="tab-btn-mock" class="tab-btn py-2.5 px-4 font-bold text-slate-600 hover:text-red-600 rounded-t-lg transition flex items-center gap-2">
+        <i class="fa-solid fa-stopwatch-20"></i>
+        <span>실전 타이머 훈련 (2초/15초)</span>
+      </button>
+      <button onclick="switchTab('quiz')" id="tab-btn-quiz" class="tab-btn py-2.5 px-4 font-bold text-slate-600 hover:text-red-600 rounded-t-lg transition flex items-center gap-2">
+        <i class="fa-solid fa-circle-question"></i>
+        <span>어휘 & 숙어 퀴즈</span>
+      </button>
+      <button onclick="switchTab('idioms')" id="tab-btn-idioms" class="tab-btn py-2.5 px-4 font-bold text-slate-600 hover:text-red-600 rounded-t-lg transition flex items-center gap-2">
+        <i class="fa-solid fa-gem"></i>
+        <span>핵심 성어·숙어 모음장</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4 md:py-6">
+
+    <!-- ================= TAB 1: 문항 학습 & 모범 답안 ================= -->
+    <section id="view-study" class="space-y-6">
+      
+      <!-- Top Helper banner for Non-Hanzi speakers -->
+      <div class="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+        <div class="flex items-start gap-3">
+          <div class="p-2.5 bg-red-500 text-white rounded-xl shadow-sm text-lg">
+            <i class="fa-solid fa-lightbulb"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-slate-900 text-sm md:text-base">한자를 몰라도 괜찮습니다!</h2>
+            <p class="text-xs md:text-sm text-slate-600 mt-0.5">
+              각 문제마다 <span class="font-bold text-red-600">성조 표기 한어병음</span>과 <span class="font-bold text-slate-800">[한글 발음 가이드]</span>를 함께 제공합니다. 스피커 버튼을 눌러 정확한 원어민 발음을 듣고 따라 해보세요.
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <select id="quickJumpSelect" onchange="jumpToQuestion(this.value)" class="w-full sm:w-auto text-xs font-semibold bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+            <!-- options generated by JS -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Main Study Workspace (Left: Question Selector / Right: Detail Card) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left Column: Question Quick List -->
+        <div class="lg:col-span-4 bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col max-h-[750px]">
+          <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">문항 리스트 (20문항)</span>
+            <span id="currentProgressBadge" class="text-xs font-bold px-2 py-0.5 bg-red-100 text-red-700 rounded-full">1 / 20</span>
+          </div>
+          <div id="questionListContainer" class="space-y-1.5 overflow-y-auto pr-1 flex-1">
+            <!-- Dynamically populated buttons -->
+          </div>
+        </div>
+
+        <!-- Right Column: Interactive Question & Model Answer Card -->
+        <div class="lg:col-span-8 space-y-4">
+          <div id="detailCard" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-all duration-200">
+            <!-- Rendered by renderQuestionDetail() -->
+          </div>
+
+          <!-- Quick Navigation Bar below card -->
+          <div class="flex items-center justify-between bg-white rounded-xl p-3 border border-slate-200 shadow-sm">
+            <button onclick="prevQuestion()" id="prevBtn" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 font-bold text-xs text-slate-700 flex items-center gap-2 transition disabled:opacity-40">
+              <i class="fa-solid fa-chevron-left"></i> 이전 문제
+            </button>
+            <div class="text-xs text-slate-500 font-medium">
+              키보드 좌우 방향키(<kbd class="px-1.5 py-0.5 bg-slate-100 rounded border border-slate-300 text-[10px]">←</kbd>, <kbd class="px-1.5 py-0.5 bg-slate-100 rounded border border-slate-300 text-[10px]">→ </kbd>)로 이동 가능
+            </div>
+            <button onclick="nextQuestion()" id="nextBtn" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 font-bold text-xs text-white flex items-center gap-2 transition disabled:opacity-40 shadow-sm">
+              다음 문제 <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= TAB 2: TSC 3부분 실전 시뮬레이터 ================= -->
+    <section id="view-mock" class="hidden space-y-6">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 max-w-3xl mx-auto text-center">
+        
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 text-red-700 font-bold text-xs mb-3">
+          <i class="fa-solid fa-bullhorn"></i> 실전 TSC 제3부분 시험 환경 재현
+        </div>
+        <h2 class="text-xl md:text-2xl font-black text-slate-900 mb-2">TSC 3부분 실전 스피킹 타이머</h2>
+        <p class="text-sm text-slate-600 max-w-lg mx-auto mb-6">
+          실제 시험은 질문을 들은 후 <strong>[생각 시간 2초]</strong> 후 <strong>[답변 시간 15초]</strong> 동안 발화해야 합니다. 실전 긴장감을 몸에 익혀보세요!
+        </p>
+
+        <!-- Exam Status Box -->
+        <div class="bg-slate-900 rounded-2xl p-6 text-white mb-6 shadow-inner relative overflow-hidden">
+          <div class="absolute -right-8 -top-8 w-32 h-32 bg-red-600/20 rounded-full blur-2xl pointer-events-none"></div>
+
+          <!-- Phase Label -->
+          <div id="mockPhaseText" class="text-sm font-semibold uppercase tracking-widest text-slate-400 mb-2">
+            준비 완료
+          </div>
+
+          <!-- Timer Countdown Display -->
+          <div id="mockTimerNumber" class="text-6xl md:text-7xl font-black tracking-tight text-white my-3 font-mono">
+            00
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="w-full bg-slate-800 rounded-full h-3 max-w-md mx-auto overflow-hidden">
+            <div id="mockProgressBar" class="h-full bg-red-500 transition-all duration-100 ease-linear" style="width: 0%;"></div>
+          </div>
+
+          <!-- Prompt Display -->
+          <div id="mockQuestionArea" class="mt-6 pt-6 border-t border-slate-800 text-left">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span id="mockQNumber">문제 선택 대기 중</span>
+              <span class="text-red-400 font-semibold">TSC 3부분 (단문 응답)</span>
+            </div>
+            <div id="mockChinese" class="text-lg md:text-xl font-bold text-white mb-1">
+              "시작하기"를 누르면 무작위 기출문제가 출제됩니다.
+            </div>
+            <div id="mockPinyin" class="text-sm text-red-300 font-medium pinyin-text mb-1">
+              Qǐng diǎnjī kāishǐ ànniǔ
+            </div>
+            <div id="mockKorean" class="text-xs text-slate-400">
+              [한국어 번역은 실전 시험에선 나오지 않지만 연습을 위해 표시됩니다]
+            </div>
+          </div>
+        </div>
+
+        <!-- Simulator Controls -->
+        <div class="flex flex-wrap items-center justify-center gap-3">
+          <button id="mockStartBtn" onclick="startMockExam()" class="px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm shadow-lg shadow-red-600/30 flex items-center gap-2 transition transform active:scale-95">
+            <i class="fa-solid fa-play"></i> 실전 시뮬레이션 시작
+          </button>
+          <button id="mockStopBtn" onclick="stopMockExam()" class="px-5 py-3 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-sm flex items-center gap-2 transition hidden">
+            <i class="fa-solid fa-stop"></i> 중지
+          </button>
+          <button id="mockShowAnswerBtn" onclick="toggleMockAnswer()" class="px-5 py-3 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-sm flex items-center gap-2 transition hidden">
+            <i class="fa-solid fa-key text-amber-500"></i> <span id="mockAnswerBtnText">모범답안 확인</span>
+          </button>
+        </div>
+
+        <!-- Hidden Model Answer after practice -->
+        <div id="mockAnswerBox" class="mt-6 hidden text-left bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <h4 class="font-bold text-amber-900 text-sm mb-1 flex items-center gap-2">
+            <i class="fa-solid fa-award text-amber-600"></i> 추천 고득점 모범답안
+          </h4>
+          <div id="mockAnswerContent" class="text-slate-800 text-sm space-y-1">
+            <!-- populated by JS -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: 어휘 & 숙어 퀴즈 ================= -->
+    <section id="view-quiz" class="hidden space-y-6">
+      <div class="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        
+        <!-- Quiz Header -->
+        <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-red-600">어휘력 & 숙어 트레이닝</span>
+            <h2 class="text-lg md:text-xl font-black text-slate-800">기출 핵심 단어·숙어 맞추기 퀴즈</h2>
+          </div>
+          <div class="text-right">
+            <span class="text-xs text-slate-500 block">진행 점수</span>
+            <span id="quizScoreText" class="text-lg font-black text-red-600">0 / 0</span>
+          </div>
+        </div>
+
+        <!-- Quiz Container -->
+        <div id="quizContainer" class="space-y-6">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Quiz Footer / Next button -->
+        <div class="flex items-center justify-between pt-4 mt-6 border-t border-slate-100">
+          <button onclick="resetQuiz()" class="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1.5">
+            <i class="fa-solid fa-rotate-right"></i> 퀴즈 처음부터 다시 풀기
+          </button>
+          <button id="quizNextBtn" onclick="nextQuizQuestion()" class="hidden px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition">
+            다음 문제 풀기 <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= TAB 4: 핵심 성어/숙어 모음장 ================= -->
+    <section id="view-idioms" class="hidden space-y-6">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 mb-6 border-b border-slate-100">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs mb-1">
+              <i class="fa-solid fa-graduation-cap"></i> TSC Level 6+ 달성 비결
+            </div>
+            <h2 class="text-xl font-black text-slate-900">TSC 3부분 필살 성어 & 숙어 사전</h2>
+            <p class="text-xs md:text-sm text-slate-600">
+              단순히 "좋아요(喜欢)", "갈게요(去)"만 말하면 레벨 4에 머뭅니다. 아래 숙어를 1개씩 섞어 말하면 즉시 <strong>레벨 6~7</strong>로 도약합니다!
+            </p>
+          </div>
+          <div class="relative w-full sm:w-64">
+            <input type="text" id="idiomSearchInput" onkeyup="filterIdioms()" placeholder="숙어 또는 한국어 검색..." class="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 pl-8 focus:outline-none focus:ring-2 focus:ring-red-500">
+            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-3 text-slate-400 text-xs"></i>
+          </div>
+        </div>
+
+        <div id="idiomGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Generated by JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+    <p>중국어 TSC 3부분 기출 20제 인터랙티브 트레이너 • 한어병음 & 한글 발음 가이드 완비 • 실전 타이머 및 음성 지원</p>
+  </footer>
+
+  <!-- Notification Toast Modal -->
+  <div id="toastBox" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 pointer-events-none">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+    <span id="toastMsg">알림 메시지</span>
+  </div>
+
+  <script>
+    /* =================================================================
+       DATASET: 20 Questions from the 4 images with full Pinyin,
+       Korean pronunciation, translation, model answer with idioms,
+       and vocabulary notes.
+       ================================================================= */
+    const TSC_DATA = [
+      {
+        id: 1,
+        hanzi: "我们商店的手机正在打折，您看看吧。",
+        pinyin: "Wǒmen shāngdiàn de shǒujī zhèngzài dǎzhé, nín kànkan ba.",
+        koreanPhonetic: "[워먼 샹디엔 더 쇼우지 정짜이 따저, 닌 칸칸 바]",
+        translation: "저희 상점 핸드폰이 마침 할인 중인데, 한번 둘러보세요.",
+        topic: "쇼핑 / 매장 권유 응대",
+        modelAnswer: {
+          hanzi: "太好了！正好我的手机有点儿旧了。不仅外观漂亮，而且物美价廉，请给我介绍一款性价比最高的吧。",
+          pinyin: "Tài hǎo le! Zhènghǎo wǒ de shǒujī yǒudiǎnr jiù le. Bùjǐn wàiguān piàoliang, érqiě wùměi-jiàlián, qǐng gěi wǒ jièshào yì kuǎn xìngjiàbǐ zuì gāo de ba.",
+          koreanPhonetic: "[타이 하오 러! 정하오 워 더 쇼우지 요우디얼 지우 러. 뿌진 와이관 피아오량, 얼치에 우메이지아리엔, 칭 게이 워 지에샤오 이 쿠안 싱지아비 쭈이 가오 더 바]",
+          translation: "너무 잘됐네요! 마침 제 폰이 좀 낡았거든요. 외관도 예쁠 뿐만 아니라 품질 좋고 가격도 저렴하니(물미가렴), 가성비가 가장 높은 모델로 하나 소개해주세요.",
+          idiom: {
+            word: "物美价廉 (wù měi jià lián)",
+            meaning: "물건이 좋고 가격이 저렴하다 (물미가렴 / 가성비 최고)"
+          },
+          strategy: "상대방의 제안에 긍정적으로 맞장구(太好了)친 뒤, 구매 이유와 함께 '物美价廉'을 넣어 고급스러운 문장을 완성합니다."
+        },
+        keyVocab: [
+          { hanzi: "打折", pinyin: "dǎzhé", meaning: "할인하다 / 세일하다" },
+          { hanzi: "物美价廉", pinyin: "wù měi jià lián", meaning: "품질 좋고 가격이 착하다" },
+          { hanzi: "性价比", pinyin: "xìngjiàbǐ", meaning: "가성비" },
+          { hanzi: "正好", pinyin: "zhènghǎo", meaning: "마침, 공교롭게도" }
+        ]
+      },
+      {
+        id: 2,
+        hanzi: "你喜欢骑自行车吗？",
+        pinyin: "Nǐ xǐhuan qí zìxíngchē ma?",
+        koreanPhonetic: "[니 시환 치 쯔싱처 마?]",
+        translation: "너 자전거 타는 거 좋아하니?",
+        topic: "취미 / 운동 여가",
+        modelAnswer: {
+          hanzi: "非常喜欢！只要有时间，我就会去汉江边骑自行车。这样既能强身健体，又能呼吸新鲜空气、放松心情，真是一举两得。",
+          pinyin: "Fēicháng xǐhuan! Zhǐyào yǒu shíjiān, wǒ jiù huì qù Hànjiāng biān qí zìxíngchē. Zhèyàng jì néng qiángshēn-jiàntǐ, yòu néng hūxī xīnxian kōngqì, fàngsōng xīnqíng, zhēnshì yìjǔ-liǎngdé.",
+          koreanPhonetic: "[페이창 시환! 즈야오 요우 스지엔, 워 지우 후이 취 한지앙 비엔 치 쯔싱처. 저양 지 능 치앙션지엔티, 요우 능 후시 신시엔 콩치, 팡쏭 신칭, 전스 이쥐리앙더]",
+          translation: "정말 좋아해요! 시간만 있으면 한강 변에 가서 자전거를 타요. 이렇게 하면 체력도 단련할 수 있고(강신건체), 신선한 공기를 마시며 기분 전환도 되니 정말 일거양득(일석이조)이에요.",
+          idiom: {
+            word: "一举两得 (yì jǔ liǎng dé) & 强身健体",
+            meaning: "일거양득(일석이조) / 몸을 튼튼히 하고 건강을 다지다"
+          },
+          strategy: "단순 '좋아한다'를 넘어 언제 타는지(只要~就~), 구체적 이점(既~又~)과 일거양득(一举两得)으로 화려하게 마무리!"
+        },
+        keyVocab: [
+          { hanzi: "骑自行车", pinyin: "qí zìxíngchē", meaning: "자전거를 타다" },
+          { hanzi: "强身健体", pinyin: "qiáng shēn jiàn tǐ", meaning: "체력을 기르고 몸을 튼튼히 하다" },
+          { hanzi: "一举两得", pinyin: "yì jǔ liǎng dé", meaning: "일거양득, 일석이조" },
+          { hanzi: "放松心情", pinyin: "fàngsōng xīnqíng", meaning: "기분을 풀다, 힐링하다" }
+        ]
+      },
+      {
+        id: 3,
+        hanzi: "现在只有最前的座位了，可以吗？",
+        pinyin: "Xiànzài zhǐyǒu zuì qián de zuòwèi le, kěyǐ ma?",
+        koreanPhonetic: "[시엔짜이 즈요우 쭈이 치엔 더 쭈어웨이 러, 커이 마?]",
+        translation: "지금 맨 앞자리 좌석밖에 안 남았는데, 괜찮으신가요?",
+        topic: "상황 대처 / 승낙",
+        modelAnswer: {
+          hanzi: "没关系，坐在最前面完全可以。只要能看得清楚，而且能全神贯注地听讲，前排反而更适合我呢，就这个位置吧！",
+          pinyin: "Méiguānxi, zuò zài zuì qiánmiàn wánquán kěyǐ. Zhǐyào néng kàn de qīngchu, érqiě néng quánshén-guànzhù de tīngjiǎng, qiánpái fǎn'ér gèng shìhé wǒ ne, jiù zhè ge wèizhi ba!",
+          koreanPhonetic: "[메이관시, 쭈어 짜이 쭈이 치엔미엔 완추엔 커이. 즈야오 능 칸 더 칭추, 얼치에 능 추안션관주 더 팅지앙, 치엔파이 판얼 껑 스허 워 너, 지우 저 거 웨이즈 바!]",
+          translation: "괜찮습니다. 맨 앞에 앉아도 전혀 문제없어요. 잘 보이기만 하면 되고, 게다가 전신을 집중해(전신관주) 경청할 수 있으니 앞줄이 오히려 제게 더 잘 맞네요. 이 자리로 할게요!",
+          idiom: {
+            word: "全神贯注 (quán shén guàn zhù)",
+            meaning: "정신을 온통 한곳에 집중하다 (몰입하다)"
+          },
+          strategy: "맨 앞자리의 장점(더 잘 들리고 집중할 수 있음)을 긍정적인 태도로 이유를 들어 설명하세요."
+        },
+        keyVocab: [
+          { hanzi: "座位", pinyin: "zuòwèi", meaning: "좌석, 자리" },
+          { hanzi: "没关系", pinyin: "méi guānxi", meaning: "괜찮습니다" },
+          { hanzi: "全神贯注", pinyin: "quán shén guàn zhù", meaning: "전심전력으로 집중하다" },
+          { hanzi: "反而", pinyin: "fǎn'ér", meaning: "오히려, 도리어" }
+        ]
+      },
+      {
+        id: 4,
+        hanzi: "你喜欢看电视吗？",
+        pinyin: "Nǐ xǐhuan kàn diànshì ma?",
+        koreanPhonetic: "[니 시환 칸 뎬스 마?]",
+        translation: "너 TV 보는 것 좋아하니?",
+        topic: "일상 여가 / 미디어",
+        modelAnswer: {
+          hanzi: "我很喜欢看电视。尤其是综艺节目和新闻，内容丰富多彩，不仅能开阔眼界、增长见识，工作之余还能劳逸结合、缓解压力。",
+          pinyin: "Wǒ hěn xǐhuan kàn diànshì. Yóuqí shì zōngyì jiémù hé xīnwén, nèiróng fēngfù-duōcǎi, bùjǐn néng kāikuò yǎnjiè, zēngzhǎng jiànshí, gōngzuò zhīyú hái néng láoyì-jiéhé, huǎnjiě yālì.",
+          koreanPhonetic: "[워 헌 시환 칸 뎬스. 요우치 스 쫑이 지에무 허 신원, 네이롱 펑푸두어차이, 뿌진 능 카이쿠어 옌지에, 쩡장 지엔스, 꽁쭈어 즈위 하이 능 라오이지에허, 환지에 야리]",
+          translation: "TV 보는 것을 무척 좋아해요. 특히 예능과 뉴스는 내용이 다채로워서(풍부다채), 시야를 넓히고 견문을 넓힐 수 있을 뿐 아니라 일한 뒤 일과 휴식을 조화롭게 하며(노일결합) 스트레스도 풀 수 있어요.",
+          idiom: {
+            word: "丰富多彩 & 劳逸结合 (láo yì jié hé)",
+            meaning: "다채롭고 풍부하다 / 일과 휴식을 적절히 배합하다"
+          },
+          strategy: "어떤 프로그램을 보는지(예능, 뉴스) 구체적으로 제시하고 견문을 넓힌다(开阔眼界), 노일결합(劳逸结合)을 쓰면 최고 점수!"
+        },
+        keyVocab: [
+          { hanzi: "丰富多彩", pinyin: "fēngfù duōcǎi", meaning: "다양하고 다채롭다" },
+          { hanzi: "开阔眼界", pinyin: "kāikuò yǎnjiè", meaning: "시야를 넓히다" },
+          { hanzi: "劳逸结合", pinyin: "láo yì jié hé", meaning: "일과 휴식의 균형을 맞추다" },
+          { hanzi: "尤其", pinyin: "yóuqí", meaning: "특히, 더욱이" }
+        ]
+      },
+      {
+        id: 5,
+        hanzi: "你平时在哪儿做作业？",
+        pinyin: "Nǐ píngshí zài nǎr zuò zuòyè?",
+        koreanPhonetic: "[니 핑스 짜이 날 쭈어 쭈어예?]",
+        translation: "너는 평소에 어디에서 숙제를 하니?",
+        topic: "학습 습관 / 장소",
+        modelAnswer: {
+          hanzi: "我平时喜欢在学校附近的咖啡馆做作业。那里环境优雅安静，一边喝咖啡一边学习，能够聚精会神，学习效率也事半功倍。",
+          pinyin: "Wǒ píngshí xǐhuan zài xuéxiào fùjìn de kāfēiguǎn zuò zuòyè. Nàlǐ huánjìng yōuyǎ ānjìng, yìbiān hē kāfēi yìbiān xuéxí, nénggòu jùjīng-huìshén, xuéxí xiàolǜ yě shìbàn-gōngbèi.",
+          koreanPhonetic: "[워 핑스 시환 짜이 슈에샤오 푸진 더 카페이관 쭈어 쭈어예. 나리 환징 요우야 안징, 이비엔 허 카페이 이비엔 슈에시, 능거우 쥐징후이션, 슈에시 샤오뤼 예 스반꽁베이]",
+          translation: "저는 평소 학교 근처 카페에서 숙제하는 걸 좋아해요. 거긴 분위기가 아늑하고 조용해서 커피를 마시며 공부하면 정신을 집중할(거정회신) 수 있고, 학습 효율도 적은 노력으로 배의 성과를 거두는(사반공배) 효과가 있거든요.",
+          idiom: {
+            word: "事半功倍 (shì bàn gōng bèi) & 聚精会神",
+            meaning: "절반의 노력으로 배의 효과를 거두다 / 정신을 온전히 집중하다"
+          },
+          strategy: "장소(카페/도서관)를 밝히고 분위기(환경)와 집중도(聚精会神), 공부 능률(事半功倍)을 결합합니다."
+        },
+        keyVocab: [
+          { hanzi: "做作业", pinyin: "zuò zuòyè", meaning: "숙제를 하다" },
+          { hanzi: "聚精会神", pinyin: "jù jīng huì shén", meaning: "온 정신을 집중하다" },
+          { hanzi: "事半功倍", pinyin: "shì bàn gōng bèi", meaning: "적은 힘으로 큰 성과를 내다" },
+          { hanzi: "效率", pinyin: "xiàolǜ", meaning: "효율, 능률" }
+        ]
+      },
+      {
+        id: 6,
+        hanzi: "我可以借用一下你的笔记本电脑吗？",
+        pinyin: "Wǒ kěyǐ jièyòng yíxià nǐ de bǐjìběn diànnǎo ma?",
+        koreanPhonetic: "[워 커이 지에요옹 이시아 니 더 비지번 뎬나오 마?]",
+        translation: "내가 네 노트북 컴퓨터를 잠깐 빌려 써도 될까?",
+        topic: "물건 대여 / 흔쾌한 승낙",
+        modelAnswer: {
+          hanzi: "当然可以，尽管拿去用吧！正好我现在不需要用电脑，能帮上你的忙，解你的燃眉之急，我很高兴。桌上的充电器你也一起拿去吧。",
+          pinyin: "Dāngrán kěyǐ, jǐnguǎn ná qù yòng ba! Zhènghǎo wǒ xiànzài bù xūyào yòng diànnǎo, néng bāngshang nǐ de máng, jiě nǐ de ránméi-zhījī, wǒ hěn gāoxìng. Zhuōshang de chōngdiànqì nǐ yě yìqǐ ná qù ba.",
+          koreanPhonetic: "[당란 커이, 진관 나 취 요옹 바! 정하오 워 시엔짜이 뿌 쉬야오 요옹 뎬나오, 능 방샹 니 더 망, 지에 니 더 란메이지지, 워 헌 가오싱. 쭈어샹 더 총뎬치 니 예 이치 나 취 바]",
+          translation: "당연히 되지, 얼마든지 가져다 써! 마침 지금 나 컴퓨터 안 쓰거든. 너를 도와 급한 불을 끄게(연미지급) 해줄 수 있어서 기뻐. 책상 위 충전기도 같이 가져가!",
+          idiom: {
+            word: "燃眉之急 (rán méi zhī jí)",
+            meaning: "눈썹에 불이 붙을 정도로 매우 급박한 위기/상황"
+          },
+          strategy: "친절하고 흔쾌하게 빌려주는 뉘앙스(尽管拿去用)와 배려(충전기도 챙겨줌)를 보여주면 완벽합니다."
+        },
+        keyVocab: [
+          { hanzi: "笔记本电脑", pinyin: "bǐjìběn diànnǎo", meaning: "노트북 컴퓨터" },
+          { hanzi: "借用", pinyin: "jièyòng", meaning: "빌려 쓰다" },
+          { hanzi: "尽管", pinyin: "jǐnguǎn", meaning: "얼마든지, 마음 놓고" },
+          { hanzi: "燃眉之急", pinyin: "rán méi zhī jí", meaning: "발등의 불, 몹시 다급한 처지" }
+        ]
+      },
+      {
+        id: 7,
+        hanzi: "这次放假我打算学游泳！",
+        pinyin: "Zhè cì fàngjià wǒ dǎsuàn xué yóuyǒng!",
+        koreanPhonetic: "[저 츠 팡지아 워 다수안 슈에 요우용!]",
+        translation: "이번 방학 때 나 수영 배울 생각이야!",
+        topic: "계획 지지 / 응원 및 권유",
+        modelAnswer: {
+          hanzi: "太棒了，这真是一个绝妙的主意！学游泳不仅能强身健体，还能在夏天消暑解热。只要坚持不懈，你一定会游得特别棒的，加油！",
+          pinyin: "Tài bàng le, zhè zhēnshì yí ge juémiào de zhǔyi! Xué yóuyǒng bùjǐn néng qiángshēn-jiàntǐ, hái néng zài xiàtiān xiāoshǔ-jiěrè. Zhǐyào jiānchí-búxiè, nǐ yídìng huì yóu de tèbié bàng de, jiāyóu!",
+          koreanPhonetic: "[타이 방 러, 저 전스 이 거 쥐에미아오 더 주이! 슈에 요우용 뿌진 능 치앙션지엔티, 하이 능 짜이 시아티엔 샤오슈지에러. 즈야오 지엔츠부시에, 니 이딩 후이 요우 더 터비에 방 더, 지아요우!]",
+          translation: "정말 최고다, 완전 기막히게 좋은 생각이야! 수영을 배우면 몸도 튼튼해지고 여름에 더위도 식힐 수 있잖아. 꾸준히 포기하지 않고(견지불해) 하면 분명 멋지게 헤엄칠 수 있을 거야, 파이팅!",
+          idiom: {
+            word: "坚持不懈 (jiān chí bú xiè)",
+            meaning: "어떤 일을 포기하지 않고 끊임없이 꾸준히 견지하다"
+          },
+          strategy: "상대방의 새 도전을 극찬(绝妙的主意)하고 수영의 장점과 응원의 메시지(坚持不懈)를 전합니다."
+        },
+        keyVocab: [
+          { hanzi: "放假", pinyin: "fàngjià", meaning: "방학하다, 휴가를 갖다" },
+          { hanzi: "游泳", pinyin: "yóuyǒng", meaning: "수영하다" },
+          { hanzi: "坚持不懈", pinyin: "jiān chí bú xiè", meaning: "끊임없이 견지하다" },
+          { hanzi: "消暑", pinyin: "xiāoshǔ", meaning: "더위를 식히다" }
+        ]
+      },
+      {
+        id: 8,
+        hanzi: "下课后一起去图书馆吧。",
+        pinyin: "Xiàkè hòu yìqǐ qù túshūguǎn ba.",
+        koreanPhonetic: "[시아커 허우 이치 취 투슈관 바]",
+        translation: "수업 끝나고 같이 도서관에 가자.",
+        topic: "친구의 제안 승낙 / 약속",
+        modelAnswer: {
+          hanzi: "好啊，求之不得！正好期末考试迫在眉睫，我也打算去借几本参考书。我们下课后在教室门口不见不散，一起抓紧复习吧。",
+          pinyin: "Hǎo a, qiúzhī-bùdé! Zhènghǎo qīmò kǎoshì pòzài-méijié, wǒ yě dǎsuàn qù jiè jǐ běn cānkǎoshū. Wǒmen xiàkè hòu zài jiàoshì ménkǒu bújiàn-búsàn, yìqǐ zhuājǐn fùxí ba.",
+          koreanPhonetic: "[하오 아, 치우즈뿌더! 정하오 치모 카오스 포짜이메이지에, 워 예 다수안 취 지에 지 번 찬카오슈. 워먼 시아커 허우 짜이 지아오스 먼코우 부지엔부싼, 이치 주어진 푸시 바]",
+          translation: "좋아, 바라던 바야(구지부득)! 마침 기말시험이 코앞에 닥쳐서(포재미첩) 나도 참고서 몇 권 빌리려던 참이었어. 수업 끝나고 교실 문 앞에서 꼭 만나(불견불산), 같이 열심히 복습하자.",
+          idiom: {
+            word: "求之不得 & 不见不散 (bú jiàn bú sàn)",
+            meaning: "바라던 바이니 마다할 리 없다 / 만나기 전까진 헤어지지 않는다(꼭 만나자)"
+          },
+          strategy: "제안에 격하게 동의(求之不得)하고, 만날 장소와 약속 약칭(不见不散)으로 자연스럽게 대화를 맺습니다."
+        },
+        keyVocab: [
+          { hanzi: "下课", pinyin: "xiàkè", meaning: "수업을 마치다" },
+          { hanzi: "求之不得", pinyin: "qiú zhī bù dé", meaning: "원하던 바라 더없이 좋다" },
+          { hanzi: "迫在眉睫", pinyin: "pò zài méi jié", meaning: "발등에 불이 떨어지다, 목전에 닥치다" },
+          { hanzi: "不见不散", pinyin: "bú jiàn bú sàn", meaning: "(약속 장소에서) 만날 때까지 헤어지지 말자" }
+        ]
+      },
+      {
+        id: 9,
+        hanzi: "你在家常常做菜吗？",
+        pinyin: "Nǐ zài jiā chángcháng zuòcài ma?",
+        koreanPhonetic: "[니 짜이 지아 창창 쭈어차이 마?]",
+        translation: "너 집에서 자주 요리해 먹니?",
+        topic: "요리 / 식습관",
+        modelAnswer: {
+          hanzi: "是的，只要周末有空，我都会亲自下厨。做菜是我的拿手好戏，做出的菜色香味俱全。自己做不仅健康卫生，还能让心情变得格外轻松。",
+          pinyin: "Shì de, zhǐyào zhōumò yǒukòng, wǒ dōuhuì qīnzì xiàchú. Zuòcài shì wǒ de náshǒu-hǎoxì, zuòchū de cài sè-xiāng-wèi jùquán. Zìjǐ zuò bùjǐn jiànkāng wèishēng, hái néng ràng xīnqíng biànde géwài qīngsōng.",
+          koreanPhonetic: "[스 더, 즈야오 저우모 요우콩, 워 또우후이 친즈 시아추. 쭈어차이 스 워 더 나쇼우하오시, 쭈어추 더 차이 써시앙웨이 쥐추안. 쯔지 쭈어 뿌진 지엔캉 웨이셩, 하이 능 랑 신칭 비엔더 거와이 칭쏭]",
+          translation: "네, 주말에 시간만 나면 직접 주방에 들어가 요리해요. 요리는 저의 장기(비장의 무기)라서 색과 향과 맛을 두루 갖추고(색향미구전) 있답니다. 직접 해 먹으면 건강하고 위생적일 뿐 아니라 기분도 한결 홀가분해져요.",
+          idiom: {
+            word: "色香味俱全 (sè xiāng wèi jù quán) & 拿手好戏",
+            meaning: "색·향·맛 삼박자가 모두 완벽하다 / 가장 자신 있는 특기"
+          },
+          strategy: "직접 요리하다(亲自下厨), 특기이다(拿手好戏), 색향미구전(色香味俱全)을 쓰면 요리 관련 문제 종결!"
+        },
+        keyVocab: [
+          { hanzi: "做菜", pinyin: "zuòcài", meaning: "요리를 만들다" },
+          { hanzi: "亲自下厨", pinyin: "qīnzì xiàchú", meaning: "직접 부엌에 서다(요리하다)" },
+          { hanzi: "拿手好戏", pinyin: "náshǒu hǎoxì", meaning: "특기, 장기" },
+          { hanzi: "色香味俱全", pinyin: "sè xiāng wèi jù quán", meaning: "색깔, 냄새, 맛이 모두 훌륭하다" }
+        ]
+      },
+      {
+        id: 10,
+        hanzi: "坐什么车去美术馆比较好呢？",
+        pinyin: "Zuò shénme chē qù měishùguǎn bǐjiào hǎo ne?",
+        koreanPhonetic: "[쭈어 션머 처 취 메이슈관 비지아오 하오 너?]",
+        translation: "어떤 차를 타고 미술관에 가는 게 더 좋을까요?",
+        topic: "교통수단 추천 / 길 안내",
+        modelAnswer: {
+          hanzi: "我建议你坐地铁去。现在正是下班高峰期，路上的交通拥堵不堪。坐地铁不仅四通八达、方便快捷，而且绝不堵车，能帮你准时到达。",
+          pinyin: "Wǒ jiànyì nǐ zuò dìtiě qù. Xiànzài zhèngshì xiàbān gāofēngqī, lùshang de jiāotōng yōngdǔ-bùkān. Zuò dìtiě bùjǐn sìtōng-bādá, fāngbiàn kuàijié, érqiě jué bù dǔchē, néng bāng nǐ zhǔnshí dàodá.",
+          koreanPhonetic: "[워 지엔이 니 쭈어 디티에 취. 시엔짜이 정스 시아반 가오펑치, 루샹 더 지아오통 요옹두부칸. 쭈어 디티에 뿌진 쓰통빠다, 팡비엔 쿠아이지에, 얼치에 쥐에 뿌 두처, 능 방 니 준스 따오다]",
+          translation: "지하철을 타고 가시는 걸 추천해요. 지금이 마침 퇴근 피크 시간대라 도로가 극심하게 막히거든요(옹도불감). 지하철은 사방으로 통하고(사통팔달) 빠르고 편리할 뿐 아니라 절대 차가 안 막혀 제시간에 도착할 수 있어요.",
+          idiom: {
+            word: "四通八达 (sì tōng bā dá) & 方便快捷",
+            meaning: "사통팔달 (교통망이 사방으로 편리하게 뚫려있음) / 편리하고 신속함"
+          },
+          strategy: "교통 질문에는 '지하철'을 추천하고, 출퇴근 시간대 혼잡(高峰期, 堵车)과 지하철의 신속성(方便快捷, 四通八达)을 언급하세요."
+        },
+        keyVocab: [
+          { hanzi: "美术馆", pinyin: "měishùguǎn", meaning: "미술관" },
+          { hanzi: "高峰期", pinyin: "gāofēngqī", meaning: "러시아워, 피크 타임" },
+          { hanzi: "四通八达", pinyin: "sì tōng bā dá", meaning: "사통팔달하다" },
+          { hanzi: "方便快捷", pinyin: "fāngbiàn kuàijié", meaning: "편리하고 빠르다" }
+        ]
+      },
+      {
+        id: 11,
+        hanzi: "这台冰箱什么时候送到您家好呢？",
+        pinyin: "Zhè tái bīngxiāng shénme shíhou sòng dào nín jiā hǎo ne?",
+        koreanPhonetic: "[저 타이 빙시앙 션머 스호우 쏭 따오 닌 지아 하오 너?]",
+        translation: "이 냉장고를 언제 댁으로 배송해 드릴까요?",
+        topic: "배송 일정 조율 / 시간 지정",
+        modelAnswer: {
+          hanzi: "如果方便的话，请这周六上午十点左右送过来吧。那天我正好全天在家，随时恭候。送货前麻烦师傅提前半小时给我打个电话，辛苦您了！",
+          pinyin: "Rúguǒ fāngbiàn dehuà, qǐng zhè zhōuliù shàngwǔ shí diǎn zuǒyòu sòng guòlái ba. Nà tiān wǒ zhènghǎo quántiān zài jiā, suíshí-gōnghòu. Sònghuò qián máfan shīfu tíqián bàn xiǎoshí gěi wǒ dǎ ge diànhuà, xīnkǔ nín le!",
+          koreanPhonetic: "[루궈 팡비엔 더화, 칭 저 저우리우 샹우 스 디엔 쭈오요우 쏭 구어라이 바. 나 티엔 워 정하오 추안티엔 짜이 지아, 쑤이스꽁호우. 쏭후오 치엔 마판 스푸 티치엔 반 샤오스 게이 워 따 거 뎬화, 신쿠 닌 러!]",
+          translation: "괜찮으시다면 이번 주 토요일 오전 10시쯤 배송해 주세요. 그날 제가 마침 하루 종일 집에 있어 언제든 기다리고 있겠습니다(수시공후). 배송 전 기사님께서 30분 전에 미리 전화 한 통 주시면 감사하겠습니다. 수고하세요!",
+          idiom: {
+            word: "随时恭候 (suí shí gōng hòu)",
+            meaning: "언제든지 공손히 기다리고 있겠습니다"
+          },
+          strategy: "구체적 날짜와 시간(토요일 오전 10시)을 말하고, 기사님께 사전 연락을 정중하게 부탁(提前打电话)하며 예의를 갖춥니다."
+        },
+        keyVocab: [
+          { hanzi: "冰箱", pinyin: "bīngxiāng", meaning: "냉장고" },
+          { hanzi: "送到", pinyin: "sòng dào", meaning: "배달하다, 가져다주다" },
+          { hanzi: "随时恭候", pinyin: "suí shí gōng hòu", meaning: "언제든 대기/기다리다" },
+          { hanzi: "师傅", pinyin: "shīfu", meaning: "기사님, 기술자" }
+        ]
+      },
+      {
+        id: 12,
+        hanzi: "你觉得这家餐厅菜的味道怎么样？",
+        pinyin: "Nǐ juéde zhè jiā cāntīng cài de wèidao zěnmeyàng?",
+        koreanPhonetic: "[니 쥐에더 저 지아 찬팅 차이 더 웨이다오 쩜머양?]",
+        translation: "이 식당 음식 맛이 어떤 것 같아?",
+        topic: "식당 맛 평가 / 호평",
+        modelAnswer: {
+          hanzi: "真是名不虚传！每道菜都色香味俱全，尤其这道招牌菜更是让人回味无穷、赞不绝口。不仅味道正宗，服务态度也无微不至，下次我一定常来！",
+          pinyin: "Zhēnshì míngbù-xūchuán! Měi dào cài dōu sè-xiāng-wèi jùquán, yóuqí zhè dào zhāopái cài gèng shì ràng rén huíwèi-wúqióng, zànbù-juékǒu. Bùjǐn wèidao zhèngzōng, fúwù tàidu yě wúwēi-búzhì, xià cì wǒ yídìng cháng lái!",
+          koreanPhonetic: "[전스 밍뿌쉬추안! 메이 따오 차이 또우 써시앙웨이 쥐추안, 요우치 저 따오 자오파이 차이 껑 스 랑 런 후이웨이우치옹, 짠뿌쥐에코우. 뿌진 웨이다오 정쫑, 푸우 타이두 예 우웨이부즈, 시아 츠 워 이딩 창 라이!]",
+          translation: "정말 소문이 헛되지 않네요(명불허전)! 음식마다 색향미가 모두 뛰어나고, 특히 이 대표 메뉴는 먹을수록 여운이 깊고(회미무궁) 입이 마르도록 칭찬이 나와요(찬불절구). 맛도 정통이고 서비스도 세심하니 다음에도 꼭 자주 올 거예요!",
+          idiom: {
+            word: "名不虚传 & 回味无穷 (huí wèi wú qióng)",
+            meaning: "명성이 헛되지 않다 / 깊은 뒷맛과 여운이 끝없다"
+          },
+          strategy: "식당 평가에서는 '명불허전(名不虚传)', '대표 요리(招牌菜)', '입이 마르게 칭찬(赞不绝口)' 콤보로 만점을 노리세요."
+        },
+        keyVocab: [
+          { hanzi: "餐厅", pinyin: "cāntīng", meaning: "레스토랑, 식당" },
+          { hanzi: "味道", pinyin: "wèidao", meaning: "맛, 풍미" },
+          { hanzi: "名不虚传", pinyin: "míng bù xū chuán", meaning: "명성이 헛되지 않다" },
+          { hanzi: "回味无穷", pinyin: "huí wèi wú qióng", meaning: "여운이 끝없이 남다" }
+        ]
+      },
+      {
+        id: 13,
+        hanzi: "我们下午一起打保龄球好不好？",
+        pinyin: "Wǒmen xiàwǔ yìqǐ dǎ bǎolíngqiú hǎo bu hǎo?",
+        koreanPhonetic: "[워먼 시아우 이치 따 바오링치우 하오 부 하오?]",
+        translation: "우리 오늘 오후에 같이 볼링 치러 갈래, 어때?",
+        topic: "운동 제안 승낙 / 여가 활동",
+        modelAnswer: {
+          hanzi: "太好了，我乐意奉陪！最近工作压力很大，正好趁这个机会活动活动筋骨、舒缓一下身心。我也好久没打了，下午两点球馆不见不散！",
+          pinyin: "Tài hǎo le, wǒ lèyì-fèngpéi! Zuìjìn gōngzuò yālì hěn dà, zhènghǎo chèn zhè ge jīhuì huódong huódong jīngǔ, shūhuǎn yíxià shēnxīn. Wǒ yě hǎojiǔ méi dǎ le, xiàwǔ liǎng diǎn qiúguǎn bújiàn-búsàn!",
+          koreanPhonetic: "[타이 하오 러, 워 러이펑페이! 쭈이지엔 꽁쭈어 야리 헌 따, 정하오 천 저 거 지후이 후어동 후어동 진구, 슈환 이시아 션신. 워 예 하오지우 메이 따 러, 시아우 리앙 디엔 치우관 부지엔부싼!]",
+          translation: "너무 좋지, 기꺼이 동행할게(낙의봉배)! 요즘 업무 스트레스가 엄청 컸는데 마침 이 기회에 몸도 좀 풀고 심신을 편안히 달래면 되겠다. 나도 오랜만에 치는 건데, 오후 2시에 볼링장에서 꼭 만나자!",
+          idiom: {
+            word: "乐意奉陪 (lè yì fèng péi)",
+            meaning: "기쁜 마음으로 동행하다, 기꺼이 어울려 주다"
+          },
+          strategy: "제안 승낙 시 '乐意奉陪(기꺼이 함께할게)'를 쓰고, 운동으로 몸을 푼다(活动活动筋骨)는 표현을 덧붙입니다."
+        },
+        keyVocab: [
+          { hanzi: "保龄球", pinyin: "bǎolíngqiú", meaning: "볼링" },
+          { hanzi: "乐意奉陪", pinyin: "lè yì fèng péi", meaning: "기꺼이 동행하다" },
+          { hanzi: "活动筋骨", pinyin: "huódong jīngǔ", meaning: "몸을 풀다, 스트레칭하다" },
+          { hanzi: "舒缓身心", pinyin: "shūhuǎn shēnxīn", meaning: "심신을 릴랙스하다" }
+        ]
+      },
+      {
+        id: 14,
+        hanzi: "您选的果汁已经卖光了。",
+        pinyin: "Nín xuǎn de guǒzhī yǐjīng mài guāng le.",
+        koreanPhonetic: "[닌 쉬안 더 구어즈 이징 마이 광 러]",
+        translation: "손님께서 고르신 과일주스가 이미 다 품절되었습니다.",
+        topic: "품절 상황 대처 / 대체 주문",
+        modelAnswer: {
+          hanzi: "啊，真遗憾！既然如此，那就入乡随俗，换成新鲜的苹果汁或者冰美式吧。只要是冰的就好，麻烦您了，谢谢！",
+          pinyin: "À, zhēn yíhàn! Jìrán-rúcǐ, nà jiù rùxiāng-suísú, huànchéng xīnxian de píngguǒzhī huòzhě bīng měishì ba. Zhǐyào shì bīng de jiù hǎo, máfan nín le, xièxie!",
+          koreanPhonetic: "[아, 전 이한! 지란루츠, 나 지우 루시앙쑤이쑤, 환청 신시엔 더 핑구어즈 후어저 빙 메이스 바. 즈야오 스 빙 더 지우 하오, 마판 닌 러, 시에시에!]",
+          translation: "아, 참 아쉽네요! 사정이 그렇다면(기연여차), 신선한 사과주스나 아이스 아메리카노로 바꿔주세요. 시원한 것이기만 하면 다 좋습니다. 번거로우시겠지만 부탁드려요, 감사합니다!",
+          idiom: {
+            word: "既然如此 (jì rán rú cǐ)",
+            meaning: "일이 이미 그렇게 된 바에야 (상황 수용 전환 접속구)"
+          },
+          strategy: "품절 소식에 아쉬움을 가볍게 표현한 후, 유연하게 다른 음료(사과주스, 아이스 아메리카노)로 교체 주문하세요."
+        },
+        keyVocab: [
+          { hanzi: "果汁", pinyin: "guǒzhī", meaning: "과일주스" },
+          { hanzi: "卖光", pinyin: "mài guāng", meaning: "다 팔리다, 매진되다" },
+          { hanzi: "既然如此", pinyin: "jì rán rú cǐ", meaning: "상황이 이왕 그렇게 된 바에야" },
+          { hanzi: "换成", pinyin: "huàn chéng", meaning: "~로 바꾸다" }
+        ]
+      },
+      {
+        id: 15,
+        hanzi: "中午我要吃汉堡，你要不要一起去？",
+        pinyin: "Zhōngwǔ wǒ yào chī hànbǎo, nǐ yào bu yào yìqǐ qù?",
+        koreanPhonetic: "[쫑우 워 야오 치 한바오, 니 야오 부 야오 이치 취?]",
+        translation: "점심에 나 햄버거 먹을 건데, 너도 같이 갈래 말래?",
+        topic: "식사 동행 제안 승낙",
+        modelAnswer: {
+          hanzi: "求之不得，我正愁中午吃什么呢！听说学校门口新开了一家汉堡店，口味绝佳、物美价廉。我们正好去大饱口福，现在就走吧！",
+          pinyin: "Qiúzhī-bùdé, wǒ zhèng chóu zhōngwǔ chī shénme ne! Tīngshuō xuéxiào ménkǒu xīn kāi le yì jiā hànbǎodiàn, kǒuwèi juéjiā, wùměi-jiàlián. Wǒmen zhènghǎo qù dàbǎo-kǒufú, xiànzài jiù zǒu ba!",
+          koreanPhonetic: "[치우즈뿌더, 워 정 처우 쫑우 치 션머 너! 팅슈어 슈에샤오 먼코우 신 카이 러 이 지아 한바오디엔, 코우웨이 쥐에지아, 우메이지아리엔. 워먼 정하오 취 따바오코우푸, 시엔짜이 지우 저우 바!]",
+          translation: "바라던 바야(구지부득), 마침 점심에 뭘 먹을지 고민 중이었거든! 학교 정문에 새로 생긴 햄버거집이 맛도 끝내주고 가성비도 좋다던데. 우리 마침 가서 입 호강(대포구복) 제대로 하자, 지금 당장 가자!",
+          idiom: {
+            word: "大饱口福 (dà bǎo kǒu fú) & 求之不得",
+            meaning: "맛있는 음식을 실컷 먹어 입 호강을 하다 / 더 바랄 나위 없이 좋다"
+          },
+          strategy: "고민하던 찰나였다는 공감대 형성 + 새로운 맛집 정보 언급 + 입 호강하자(大饱口福)로 활기차게 수락!"
+        },
+        keyVocab: [
+          { hanzi: "汉堡", pinyin: "hànbǎo", meaning: "햄버거" },
+          { hanzi: "求之不得", pinyin: "qiú zhī bù dé", meaning: "더할 나위 없이 환영하다" },
+          { hanzi: "大饱口福", pinyin: "dà bǎo kǒu fú", meaning: "입 호강을 실컷 하다" },
+          { hanzi: "发愁/正愁", pinyin: "zhèng chóu", meaning: "마침 고민/걱정하던 중이다" }
+        ]
+      },
+      {
+        id: 16,
+        hanzi: "你明天几点下课？",
+        pinyin: "Nǐ míngtiān jǐ diǎn xiàkè?",
+        koreanPhonetic: "[니 밍티엔 지 디엔 시아커?]",
+        translation: "너 내일 몇 시에 수업 끝나?",
+        topic: "일정 안내 / 방과 후 약속",
+        modelAnswer: {
+          hanzi: "我明天下午三点下课。下课后我没有任何其他安排，完全是自由时间。如果你找我有事的话，我们可以找个安静的咖啡厅坐坐，不见不散！",
+          pinyin: "Wǒ míngtiān xiàwǔ sān diǎn xiàkè. Xiàkè hòu wǒ méiyǒu rènhé qítā ānpái, wánquán shì zìyóu shíjiān. Rúguǒ nǐ zhǎo wǒ yǒushì dehuà, wǒmen kěyǐ zhǎo ge ānjìng de kāfēitīng zuòzuo, bújiàn-búsàn!",
+          koreanPhonetic: "[워 밍티엔 시아우 싼 디엔 시아커. 시아커 허우 워 메이요우 런허 치타 안파이, 완추엔 스 쯔요우 스지엔. 루궈 니 자오 워 요우스 더화, 워먼 커이 자오 거 안징 더 카페이팅 쭈어쭈어, 부지엔부싼!]",
+          translation: "저 내일 오후 3시에 수업 끝나요. 수업 끝나고 나면 다른 일정 전혀 없이 온전히 자유 시간이에요. 혹시 저한테 볼일 있으시면 조용한 카페 가서 이야기 나눠요, 꼭 만나요!",
+          idiom: {
+            word: "不见不散 (bú jiàn bú sàn)",
+            meaning: "만날 때까지 기다리다, 꼭 만나다"
+          },
+          strategy: "단순히 '3시요'라고만 하지 말고, 수업 후 일정이 비어있다는 여유와 함께 만남을 제안하세요."
+        },
+        keyVocab: [
+          { hanzi: "明天", pinyin: "míngtiān", meaning: "내일" },
+          { hanzi: "下课", pinyin: "xiàkè", meaning: "수업을 끝마치다" },
+          { hanzi: "安排", pinyin: "ānpái", meaning: "계획, 일정 배치" },
+          { hanzi: "自由时间", pinyin: "zìyóu shíjiān", meaning: "자유 시간" }
+        ]
+      },
+      {
+        id: 17,
+        hanzi: "我打算下周去旅行。",
+        pinyin: "Wǒ dǎsuàn xià zhōu qù lǚxíng.",
+        koreanPhonetic: "[워 다수안 시아 저우 취 뤼싱]",
+        translation: "나 다음 주에 여행 갈 계획이야.",
+        topic: "여행 소식 축하 / 덕담",
+        modelAnswer: {
+          hanzi: "那太棒了！旅行不仅能开阔眼界、陶冶情操，还能让你在百忙之中彻底放松身心。祝你一路顺风、旅途愉快，到时候记得多拍些美照分享给我哦！",
+          pinyin: "Nà tài bàng le! Lǚxíng bùjǐn néng kāikuò yǎnjiè, táoyě-qíngcáo, hái néng ràng nǐ zài bǎimáng-zhīzhōng chèdǐ fàngsōng shēnxīn. Zhù nǐ yílù-shùnfēng, lǚtú yúkuài, dào shíhou jìde duō pāi xiē měi zhào fēnxiǎng gěi wǒ o!",
+          koreanPhonetic: "[나 타이 방 러! 뤼싱 뿌진 능 카이쿠어 옌지에, 타오예칭차오, 하이 능 랑 니 짜이 바이망즈쫑 처디 팡쏭 션신. 주 니 이루순펑, 뤼투 위쿠아이, 따오 스호우 지더 두어 파이 시에 메이 자오 펀시앙 게이 워 오!]",
+          translation: "그거 완전 멋지다! 여행은 견문을 넓히고 정서를 함양(도야정조)할 뿐 아니라, 눈코 뜰 새 없이 바쁜 와중(백망지중)에 심신을 푹 쉬게 해주잖아. 순조로운 여행(일로순풍) 되길 바라고, 예쁜 사진 많이 찍어서 공유해 줘!",
+          idiom: {
+            word: "一路顺风 (yí lù shùn fēng) & 陶冶情操",
+            meaning: "여행길이 순풍에 돛 단 듯 평안하기를 빈다 / 마음과 정서를 가꾸다"
+          },
+          strategy: "여행의 의의(개활안계, 도야정조)를 치켜세우고 가장 대표적인 여행 축원 성어인 '一路顺风'을 필수로 장착!"
+        },
+        keyVocab: [
+          { hanzi: "打算", pinyin: "dǎsuàn", meaning: "~할 계획이다, 생각이다" },
+          { hanzi: "旅行", pinyin: "lǚxíng", meaning: "여행하다" },
+          { hanzi: "一路顺风", pinyin: "yí lù shùn fēng", meaning: "가는 길 평안하기를 빕니다" },
+          { hanzi: "陶冶情操", pinyin: "táoyě qíngcáo", meaning: "정서를 함양하다" }
+        ]
+      },
+      {
+        id: 18,
+        hanzi: "我奶奶的生日快到了，送她什么礼物好呢？",
+        pinyin: "Wǒ nǎinai de shēngrì kuài dào le, sòng tā shénme lǐwù hǎo ne?",
+        koreanPhonetic: "[워 나이나이 더 셩르 쿠아이 따오 러, 쏭 타 션머 리우 하오 너?]",
+        translation: "우리 할머니 생신이 다가오는데, 무슨 선물을 드리면 좋을까?",
+        topic: "생신 선물 추천 / 건강 효도",
+        modelAnswer: {
+          hanzi: "尊老爱幼是传统美德，给老人送健康最贴心。我建议你送高档红参或者按摩仪，既实用又能祝愿老人家延年益寿、健康长寿，她一定会喜出望外的！",
+          pinyin: "Zūnlǎo-àiyòu shì chuántǒng měidé, gěi lǎorén sòng jiànkāng zuì tiēxīn. Wǒ jiànyì nǐ sòng gāodàng hóngshēn huòzhě ànmóyí, jì shíyòng yòu néng zhùyuàn lǎorénjia yánnián-yìshòu, jiànkāng chángshòu, tā yídìng huì xǐchū-wàngwài de!",
+          koreanPhonetic: "[쭌라오아이요우 스 추안통 메이더, 게이 라오런 쏭 지엔캉 쭈이 티에신. 워 지엔이 니 쏭 가오당 홍션 후어저 안모이, 지 스요옹 요우 능 주위안 라오런지아 옌니엔이쇼우, 지엔캉 창쇼우, 타 이딩 후이 시추왕와이 더!]",
+          translation: "어른을 공경하고 아이를 사랑함(존로애유)은 미덕인데, 어르신께는 건강을 선물하는 게 가장 다정하지. 고급 홍삼이나 마사지기를 추천해. 실용적이면서도 오래오래 건강히 장수하시길(연년익수) 축원할 수 있어 할머니께서 뜻밖의 기쁨에 활짝 웃으실(희출망외) 거야!",
+          idiom: {
+            word: "延年益寿 (yán nián yì shòu) & 喜出望外",
+            meaning: "수명을 연장하고 무병장수하다 / 기대 이상으로 몹시 기뻐하다"
+          },
+          strategy: "어르신 선물 = 건강(홍삼/안마기). 여기에 장수를 기원하는 사자성어 '延年益寿'와 기뻐하실 모습 '喜出望外'를 매칭합니다."
+        },
+        keyVocab: [
+          { hanzi: "奶奶", pinyin: "nǎinai", meaning: "할머니" },
+          { hanzi: "礼物", pinyin: "lǐwù", meaning: "선물" },
+          { hanzi: "延年益寿", pinyin: "yán nián yì shòu", meaning: "수명을 늘리고 오래 살다" },
+          { hanzi: "喜出望外", pinyin: "xǐ chū wàng wài", meaning: "뜻밖의 일에 기뻐 어쩔 줄 모르다" }
+        ]
+      },
+      {
+        id: 19,
+        hanzi: "我们下星期几看哪部电影好呢？",
+        pinyin: "Wǒmen xià xīngqī jǐ kàn nǎ bù diànyǐng hǎo ne?",
+        koreanPhonetic: "[워먼 시아 싱치 지 칸 나 부 뎬잉 하오 너?]",
+        translation: "우리 다음 주 무슨 요일에 어떤 영화를 보는 게 좋을까?",
+        topic: "요일 및 영화 선택 / 약속 제안",
+        modelAnswer: {
+          hanzi: "我看下周五晚上最合适，看完正好迎接周末。至于电影，听说最新上映的那部科幻大片好评如潮，令人翘首以盼。我们周五晚上七点电影院见吧！",
+          pinyin: "Wǒ kàn xià zhōuwǔ wǎnshang zuì héshì, kàn wán zhènghǎo yíngjiē zhōumò. Zhìyú diànyǐng, tīngshuō zuìxīn shàngyìng de nà bù kēhuàn dàpiàn hǎopíng-rúcháo, lìng rén qiáoshǒu-yǐpàn. Wǒmen zhōuwǔ wǎnshang qī diǎn diànyǐngyuàn jiàn ba!",
+          koreanPhonetic: "[워 칸 시아 저우우 완샹 쭈이 허스, 칸 완 정하오 잉지에 저우모. 즈위 뎬잉, 팅슈어 쭈이신 샹잉 더 나 부 커환 따피엔 하오핑루차오, 링 런 치아오쇼우이판. 워먼 저우우 완샹 치 디엔 뎬잉위안 지엔 바!]",
+          translation: "제 생각엔 다음 주 금요일 저녁이 가장 좋을 것 같아요. 다 보고 나면 기분 좋게 주말을 맞이할 수 있잖아요. 영화는 최근 개봉한 SF 대작이 호평이 쏟아져(호평여조) 모두가 손꼽아 기다리던(교수이반) 거래요. 금요일 저녁 7시에 극장에서 만나요!",
+          idiom: {
+            word: "好评如潮 (hǎo píng rú cháo) & 翘首以盼",
+            meaning: "호평이 파도처럼 쏟아지다 / 목을 길게 빼고 간절히 고대하다"
+          },
+          strategy: "질문에서 물어본 2가지(무슨 요일? 무슨 영화?)를 명확히 답(금요일 저녁 + SF 영화)하고 성어로 근거를 뒷받침합니다."
+        },
+        keyVocab: [
+          { hanzi: "下星期几", pinyin: "xià xīngqī jǐ", meaning: "다음 주 무슨 요일" },
+          { hanzi: "好评如潮", pinyin: "hǎo píng rú cháo", meaning: "칭찬과 호평이 빗발치다" },
+          { hanzi: "翘首以盼", pinyin: "qiáo shǒu yǐ pàn", meaning: "학수고대하다, 손꼽아 기다리다" },
+          { hanzi: "科幻大片", pinyin: "kēhuàn dàpiàn", meaning: "SF 블록버스터 영화" }
+        ]
+      },
+      {
+        id: 20,
+        hanzi: "这是今年新出的款式，试一下吧。",
+        pinyin: "Zhè shì jīnnián xīn chū de kuǎnshì, shì yíxià ba.",
+        koreanPhonetic: "[저 스 진니엔 신 추 더 쿠안스, 스 이시아 바]",
+        translation: "이건 올해 새로 나온 디자인(신상품)인데, 한번 착용해 보세요.",
+        topic: "쇼핑 피팅 권유 / 만족과 구매 의사",
+        modelAnswer: {
+          hanzi: "哇，这件衣服的设计真是别具一格！不仅颜色正合我意，穿上之后更是焕然一新、格外合身。既然款式这么新颖流行，我就买这件了，请帮我包起来吧！",
+          pinyin: "Wā, zhè jiàn yīfu de shèjì zhēnshì biéjù-yìgé! Bùjǐn yánsè zhènghé-wǒyì, chuān shang zhīhòu gèng shì huànrán-yìxīn, géwài héshēn. Jìrán kuǎnshì zhème xīnyǐng liúxíng, wǒ jiù mǎi zhè jiàn le, qǐng bāng wǒ bāo qǐlái ba!",
+          koreanPhonetic: "[와, 저 지엔 이푸 더 셔지 전스 비에쥐이거! 뿌진 옌써 정허워이, 추안 샹 즈허우 껑 스 환란이신, 거와이 허션. 지란 쿠안스 저머 신잉 리우싱, 워 지우 마이 저 지엔 러, 칭 방 워 바오 치라이 바!]",
+          translation: "와, 이 옷 디자인이 정말 독특하고 남다르네요(별구일격)! 색상도 마침 딱 제 마음에 들고, 입어보니 완전히 새로운 사람처럼 산뜻하고(환연일신) 핏도 아주 잘 맞아요. 디자인이 이렇게 참신하고 트렌디하니 이걸로 살게요, 포장해 주세요!",
+          idiom: {
+            word: "别具一格 (bié jù yì gé) & 焕然一新",
+            meaning: "독특한 격조와 개성을 갖추다 / 면모가 완전히 새로워지다"
+          },
+          strategy: "직원의 권유에 적극 호응하여 감탄(哇) + 디자인 칭찬(别具一格) + 입은 핏 극찬(格外合身) + 구매 결정(买这件)으로 매끄럽게 마무리합니다."
+        },
+        keyVocab: [
+          { hanzi: "款式", pinyin: "kuǎnshì", meaning: "스타일, 디자인, 모델" },
+          { hanzi: "试一下", pinyin: "shì yíxià", meaning: "한번 입어보다, 시도하다" },
+          { hanzi: "别具一格", pinyin: "bié jù yì gé", meaning: "독창적인 스타일을 지니다" },
+          { hanzi: "合身", pinyin: "héshēn", meaning: "(옷이 몸에) 꼭 맞다" }
+        ]
+      }
+    ];
+
+    /* =================================================================
+       QUIZ DATASET
+       ================================================================= */
+    const QUIZ_DATA = [
+      {
+        question: "'품질이 훌륭하고 가격도 매우 저렴하다(가성비 최고)'를 뜻하는 필수 4자 성어는?",
+        options: ["物美价廉 (wù měi jià lián)", "劳逸结合 (láo yì jié hé)", "四通八达 (sì tōng bā dá)", "迫在眉睫 (pò zài méi jié)"],
+        answerIndex: 0,
+        explanation: "物美价廉(물미가렴)은 물건의 질(物)이 아름답고(美) 가격(价)이 저렴하다(廉)는 뜻으로 쇼핑 문제의 만능 성어입니다."
+      },
+      {
+        question: "'한 번의 행동으로 두 가지 이익을 얻는다(일거양득, 일석이조)'의 중국어 표현은?",
+        options: ["求之不得 (qiú zhī bù dé)", "一举两得 (yì jǔ liǎng dé)", "别具一格 (bié jù yì gé)", "名不虚传 (míng bù xū chuán)"],
+        answerIndex: 1,
+        explanation: "一举两得(일거양득)은 운동(자전거, 수영)이나 독서, 취미 활동 등에서 이점을 2가지 열거할 때 쓰기 좋습니다."
+      },
+      {
+        question: "친구가 맛있는 음식을 먹으러 가자거나 도서관에 가자고 제안했을 때, '바라던 바야! 더없이 좋아!'라고 격하게 수락하는 성어는?",
+        options: ["不见不散 (bú jiàn bú sàn)", "延年益寿 (yán nián yì shòu)", "求之不得 (qiú zhī bù dé)", "全神贯注 (quán shén guàn zhù)"],
+        answerIndex: 2,
+        explanation: "求之不得(구지부득)은 '구하려 해도 얻지 못할 정도로 바라던 바'라는 뜻으로 제안 수락 시 최고의 답변입니다."
+      },
+      {
+        question: "음식의 '색깔(色), 향기(香), 맛(味)'이 모두 완벽하게 갖추어져 매우 맛있음을 표현하는 숙어는?",
+        options: ["色香味俱全 (sè xiāng wèi jù quán)", "丰富多彩 (fēngfù duōcǎi)", "四通八达 (sì tōng bā dá)", "大饱口福 (dà bǎo kǒu fú)"],
+        answerIndex: 0,
+        explanation: "色香味俱全(색향미구전)은 요리나 식당 관련 질문에서 100% 가산점을 받는 필수 사자성어입니다."
+      },
+      {
+        question: "친구가 여행(旅行)을 떠난다고 할 때, '가는 길 평안하고 순조롭기를!' 빌어주는 대표적 축복 인사는?",
+        options: ["一路顺风 (yí lù shùn fēng)", "随时恭候 (suí shí gōng hòu)", "坚持不懈 (jiān chí bú xiè)", "事半功倍 (shì bàn gōng bèi)"],
+        answerIndex: 0,
+        explanation: "一路顺风(일로순풍)은 배나 비행기, 여행을 떠나는 사람에게 여정의 무탈을 빌어주는 가장 보편적이고 좋은 인사말입니다."
+      },
+      {
+        question: "할머니 생신 선물로 건강식품을 추천하며 '오래오래 건강히 무병장수하세요'를 기원하는 성어는?",
+        options: ["喜出望外 (xǐ chū wàng wài)", "延年益寿 (yán nián yì shòu)", "别具一格 (bié jù yì gé)", "回味无穷 (huí wèi wú qióng)"],
+        answerIndex: 1,
+        explanation: "延年益寿(연년익수)는 어르신에게 드리는 건강 관련 축원 사자성어입니다."
+      },
+      {
+        question: "지하철이나 버스가 여러 방면으로 사방팔방 막힘없이 뚫려있는 교통의 편리함을 뜻하는 성어는?",
+        options: ["四通八达 (sì tōng bā dá)", "迫在眉睫 (pò zài méi jié)", "聚精会神 (jù jīng huì shén)", "劳逸结合 (láo yì jié hé)"],
+        answerIndex: 0,
+        explanation: "四通八达(사통팔달)은 교통수단(지하철, 버스 등)의 편리함을 설명할 때 핵심적인 고득점 어휘입니다."
+      }
+    ];
+
+    /* =================================================================
+       APP STATE
+       ================================================================= */
+    let currentIndex = 0;
+    let isPinyinVisible = true;
+    let speechRate = 1.0;
+    let synth = window.speechSynthesis;
+    let selectedVoice = null;
+
+    // Quiz State
+    let currentQuizIndex = 0;
+    let quizScore = 0;
+    let quizAnswered = false;
+
+    // Mock Exam State
+    let mockTimer = null;
+    let mockPhase = 'idle'; // idle | think | speak
+    let mockRemainingTime = 0;
+    let currentMockQuestion = null;
+
+    // Initialize voices
+    function initSpeech() {
+      if ('speechSynthesis' in window) {
+        const updateVoices = () => {
+          const voices = synth.getVoices();
+          // Prefer Chinese Mainland or Taiwan voice
+          selectedVoice = voices.find(v => v.lang === 'zh-CN' || v.lang.startsWith('zh')) || null;
+        };
+        updateVoices();
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+          speechSynthesis.onvoiceschanged = updateVoices;
+        }
+      }
+    }
+
+    function speakText(text) {
+      if (!('speechSynthesis' in window)) {
+        showToast("이 브라우저는 음성 합성을 지원하지 않습니다.", "error");
+        return;
+      }
+      synth.cancel(); // Stop any active speech
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'zh-CN';
+      utterance.rate = speechRate;
+      if (selectedVoice) utterance.voice = selectedVoice;
+      synth.speak(utterance);
+    }
+
+    // Audio beeps using Web Audio API for timer
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeep(freq = 880, duration = 0.2, type = 'sine') {
+      try {
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.warn("Audio Context beep error:", e);
+      }
+    }
+
+    function switchTab(tabId) {
+      const tabs = ['study', 'mock', 'quiz', 'idioms'];
+      tabs.forEach(t => {
+        const viewEl = document.getElementById(`view-${t}`);
+        const btnEl = document.getElementById(`tab-btn-${t}`);
+        if (t === tabId) {
+          viewEl.classList.remove('hidden');
+          btnEl.classList.add('active-tab');
+          btnEl.classList.remove('text-slate-600');
+        } else {
+          viewEl.classList.add('hidden');
+          btnEl.classList.remove('active-tab');
+          btnEl.classList.add('text-slate-600');
+        }
+      });
+
+      if (tabId === 'quiz' && currentQuizIndex === 0 && quizScore === 0) {
+        renderQuiz();
+      }
+      if (tabId === 'idioms') {
+        renderIdioms();
+      }
+    }
+
+    function renderQuestionList() {
+      const container = document.getElementById('questionListContainer');
+      const select = document.getElementById('quickJumpSelect');
+      container.innerHTML = '';
+      select.innerHTML = '';
+
+      TSC_DATA.forEach((q, idx) => {
+        // Build Left list button
+        const btn = document.createElement('button');
+        btn.className = `w-full text-left p-2.5 rounded-xl border transition flex items-center justify-between text-xs ${
+          idx === currentIndex 
+            ? 'bg-red-50 border-red-300 text-red-900 font-bold shadow-sm ring-1 ring-red-400' 
+            : 'border-transparent hover:bg-slate-100 text-slate-700 font-medium'
+        }`;
+        btn.onclick = () => selectQuestion(idx);
+
+        btn.innerHTML = `
+          <div class="flex items-center gap-2 overflow-hidden">
+            <span class="w-5 h-5 rounded-full ${idx === currentIndex ? 'bg-red-600 text-white' : 'bg-slate-200 text-slate-600'} flex items-center justify-center font-bold text-[10px] shrink-0">${q.id}</span>
+            <span class="truncate">${q.hanzi}</span>
+          </div>
+          <span class="text-[10px] px-1.5 py-0.5 rounded ${idx === currentIndex ? 'bg-red-200/70 text-red-800' : 'bg-slate-100 text-slate-500'} shrink-0">${q.topic.split('/')[0].trim()}</span>
+        `;
+        container.appendChild(btn);
+
+        // Build Select option
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = `${q.id}번: ${q.hanzi.substring(0, 16)}...`;
+        if (idx === currentIndex) opt.selected = true;
+        select.appendChild(opt);
+      });
+
+      document.getElementById('currentProgressBadge').textContent = `${currentIndex + 1} / ${TSC_DATA.length}`;
+      document.getElementById('prevBtn').disabled = currentIndex === 0;
+      document.getElementById('nextBtn').disabled = currentIndex === TSC_DATA.length - 1;
+    }
+
+    function selectQuestion(index) {
+      currentIndex = index;
+      renderQuestionList();
+      renderQuestionDetail();
+    }
+
+    function jumpToQuestion(val) {
+      selectQuestion(parseInt(val, 10));
+    }
+
+    function prevQuestion() {
+      if (currentIndex > 0) selectQuestion(currentIndex - 1);
+    }
+
+    function nextQuestion() {
+      if (currentIndex < TSC_DATA.length - 1) selectQuestion(currentIndex + 1);
+    }
+
+    function renderQuestionDetail() {
+      const q = TSC_DATA[currentIndex];
+      const detailCard = document.getElementById('detailCard');
+
+      detailCard.innerHTML = `
+        <!-- Question Section -->
+        <div class="p-6 bg-gradient-to-b from-white to-slate-50/50 border-b border-slate-200">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-1 rounded-lg bg-red-600 text-white font-extrabold text-xs">문제 ${q.id}</span>
+              <span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold">${q.topic}</span>
+            </div>
+            <button onclick="speakText('${q.hanzi.replace(/'/g, "\\'")}')" class="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs flex items-center gap-1.5 transition border border-red-200 shadow-sm active:scale-95">
+              <i class="fa-solid fa-volume-high text-red-600"></i> 문제 발음 듣기
+            </button>
+          </div>
+
+          <!-- Chinese Hanzi with custom sizing -->
+          <div class="text-xl md:text-2xl font-black text-slate-900 mb-2 leading-relaxed chinese-text">
+            ${q.hanzi}
+          </div>
+
+          <!-- Pinyin with Tone Marks -->
+          <div class="pinyin-block pinyin-text text-sm md:text-base font-semibold text-red-600 mb-1.5 ${isPinyinVisible ? '' : 'hidden'}">
+            <span class="inline-block bg-red-50 px-2 py-0.5 rounded text-red-700 border border-red-100">${q.pinyin}</span>
+          </div>
+
+          <!-- Korean Phonetic Guide for beginners -->
+          <div class="text-xs md:text-sm text-slate-500 font-medium mb-3">
+            발음 가이드: <span class="text-slate-700 font-semibold">${q.koreanPhonetic}</span>
+          </div>
+
+          <!-- Korean Translation -->
+          <div class="p-3 bg-white rounded-xl border border-slate-200/80 text-xs md:text-sm text-slate-800 font-bold flex items-start gap-2 shadow-xs">
+            <i class="fa-solid fa-language text-slate-400 mt-0.5"></i>
+            <span>해석: ${q.translation}</span>
+          </div>
+        </div>
+
+        <!-- Model Answer Section -->
+        <div class="p-6 bg-white space-y-5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-md bg-amber-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                <i class="fa-solid fa-crown"></i>
+              </div>
+              <h3 class="font-extrabold text-slate-900 text-sm md:text-base">TSC Level 6+ 목표 모범 답안</h3>
+            </div>
+            <button onclick="speakText('${q.modelAnswer.hanzi.replace(/'/g, "\\'")}')" class="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs flex items-center gap-1.5 transition border border-amber-200 shadow-sm active:scale-95">
+              <i class="fa-solid fa-volume-high text-amber-600"></i> 답안 듣기
+            </button>
+          </div>
+
+          <!-- Answer Body -->
+          <div class="bg-gradient-to-r from-amber-50/70 to-orange-50/40 rounded-2xl p-4 md:p-5 border border-amber-200/80 space-y-2">
+            <!-- Hanzi Answer -->
+            <div class="text-base md:text-lg font-bold text-slate-900 leading-relaxed chinese-text">
+              ${q.modelAnswer.hanzi}
+            </div>
+
+            <!-- Pinyin Answer -->
+            <div class="pinyin-block pinyin-text text-xs md:text-sm font-semibold text-amber-900 ${isPinyinVisible ? '' : 'hidden'}">
+              ${q.modelAnswer.pinyin}
+            </div>
+
+            <!-- Korean phonetic pronunciation -->
+            <div class="text-xs text-amber-800/80 font-medium">
+              발음: ${q.modelAnswer.koreanPhonetic}
+            </div>
+
+            <!-- Korean translation of Answer -->
+            <div class="pt-2 border-t border-amber-200 text-xs md:text-sm text-slate-800 font-medium leading-relaxed">
+              <strong>답변 번역:</strong> ${q.modelAnswer.translation}
+            </div>
+          </div>
+
+          <!-- Key Idiom Used -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex items-start gap-3">
+            <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg text-sm shrink-0 mt-0.5">
+              <i class="fa-solid fa-sparkles"></i>
+            </div>
+            <div>
+              <span class="text-[11px] font-bold text-indigo-600 uppercase tracking-wide">핵심 숙어 포인트</span>
+              <div class="font-extrabold text-slate-900 text-sm mt-0.5">${q.modelAnswer.idiom.word}</div>
+              <div class="text-xs text-slate-600 mt-0.5">${q.modelAnswer.idiom.meaning}</div>
+            </div>
+          </div>
+
+          <!-- Strategy Tip -->
+          <div class="text-xs bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-emerald-900">
+            <span class="font-bold flex items-center gap-1.5 mb-1"><i class="fa-solid fa-chess-knight"></i> 공략 포인트</span>
+            ${q.modelAnswer.strategy}
+          </div>
+
+          <!-- Vocabulary Table -->
+          <div>
+            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">이 문제의 핵심 어휘 (단어장)</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              ${q.keyVocab.map(v => `
+                <div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-200 bg-slate-50/70 hover:bg-slate-100 transition">
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-slate-900 text-sm">${v.hanzi}</span>
+                    <span class="text-xs text-red-600 font-mono">${v.pinyin}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-600 font-medium">${v.meaning}</span>
+                    <button onclick="speakText('${v.hanzi}')" class="text-slate-400 hover:text-slate-700 text-xs p-1" title="발음"><i class="fa-solid fa-volume-low"></i></button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+        </div>
+      `;
+    }
+
+    function startMockExam() {
+      // Pick a random question
+      const randomIndex = Math.floor(Math.random() * TSC_DATA.length);
+      currentMockQuestion = TSC_DATA[randomIndex];
+
+      // Update question display
+      document.getElementById('mockQNumber').textContent = `랜덤 출제: 기출 ${currentMockQuestion.id}번 (${currentMockQuestion.topic})`;
+      document.getElementById('mockChinese').textContent = currentMockQuestion.hanzi;
+      document.getElementById('mockPinyin').textContent = currentMockQuestion.pinyin;
+      document.getElementById('mockKorean').textContent = `[해석: ${currentMockQuestion.translation}]`;
+
+      // Hide answer box
+      document.getElementById('mockAnswerBox').classList.add('hidden');
+      document.getElementById('mockShowAnswerBtn').classList.add('hidden');
+      document.getElementById('mockAnswerBtnText').textContent = "모범답안 확인";
+
+      // Toggle buttons
+      document.getElementById('mockStartBtn').classList.add('hidden');
+      document.getElementById('mockStopBtn').classList.remove('hidden');
+
+      // Speak question via TTS
+      speakText(currentMockQuestion.hanzi);
+
+      // Begin Think Phase (2 seconds)
+      mockPhase = 'think';
+      mockRemainingTime = 2;
+      updateMockDisplay();
+
+      // Countdown interval
+      clearInterval(mockTimer);
+      playBeep(600, 0.15); // Start alert tone
+
+      mockTimer = setInterval(() => {
+        mockRemainingTime--;
+
+        if (mockPhase === 'think') {
+          if (mockRemainingTime <= 0) {
+            // Switch to Speak Phase (15 seconds)
+            mockPhase = 'speak';
+            mockRemainingTime = 15;
+            playBeep(1200, 0.4, 'triangle'); // High start beep (띵!)
+            showToast("답변 시작! (15초 동안 발화하세요)", "info");
+          }
+        } else if (mockPhase === 'speak') {
+          if (mockRemainingTime <= 0) {
+            // Exam finished
+            stopMockExam();
+            playBeep(440, 0.6, 'sawtooth'); // Finish tone
+            showToast("15초 답변 시간이 종료되었습니다!", "success");
+            document.getElementById('mockShowAnswerBtn').classList.remove('hidden');
+            return;
+          }
+        }
+        updateMockDisplay();
+      }, 1000);
+    }
+
+    function stopMockExam() {
+      clearInterval(mockTimer);
+      mockPhase = 'idle';
+      mockRemainingTime = 0;
+      updateMockDisplay();
+
+      document.getElementById('mockStartBtn').classList.remove('hidden');
+      document.getElementById('mockStopBtn').classList.add('hidden');
+      if (currentMockQuestion) {
+        document.getElementById('mockShowAnswerBtn').classList.remove('hidden');
+      }
+    }
+
+    function updateMockDisplay() {
+      const phaseTextEl = document.getElementById('mockPhaseText');
+      const numEl = document.getElementById('mockTimerNumber');
+      const barEl = document.getElementById('mockProgressBar');
+
+      if (mockPhase === 'think') {
+        phaseTextEl.textContent = "생각 시간 (2초 준비 중...)";
+        phaseTextEl.className = "text-sm font-extrabold uppercase tracking-widest text-amber-400 mb-2 animate-pulse";
+        numEl.textContent = mockRemainingTime.toString().padStart(2, '0');
+        numEl.className = "text-6xl md:text-7xl font-black text-amber-400 my-3 font-mono";
+        const progress = ((2 - mockRemainingTime) / 2) * 100;
+        barEl.style.width = `${progress}%`;
+        barEl.className = "h-full bg-amber-400 transition-all duration-300";
+      } else if (mockPhase === 'speak') {
+        phaseTextEl.textContent = "🎙️ 답변 중! (15초 녹음 타이머)";
+        phaseTextEl.className = "text-sm font-extrabold uppercase tracking-widest text-red-500 mb-2 animate-pulse";
+        numEl.textContent = mockRemainingTime.toString().padStart(2, '0');
+        numEl.className = "text-6xl md:text-7xl font-black text-red-500 my-3 font-mono";
+        const progress = ((15 - mockRemainingTime) / 15) * 100;
+        barEl.style.width = `${progress}%`;
+        barEl.className = "h-full bg-red-500 transition-all duration-300";
+      } else {
+        phaseTextEl.textContent = "시험 준비 완료";
+        phaseTextEl.className = "text-sm font-semibold uppercase tracking-widest text-slate-400 mb-2";
+        numEl.textContent = "00";
+        numEl.className = "text-6xl md:text-7xl font-black text-white my-3 font-mono";
+        barEl.style.width = '0%';
+      }
+    }
+
+    function toggleMockAnswer() {
+      if (!currentMockQuestion) return;
+      const box = document.getElementById('mockAnswerBox');
+      const content = document.getElementById('mockAnswerContent');
+      const btnText = document.getElementById('mockAnswerBtnText');
+
+      if (box.classList.contains('hidden')) {
+        box.classList.remove('hidden');
+        btnText.textContent = "모범답안 닫기";
+        content.innerHTML = `
+          <div class="text-base font-bold text-slate-900 mb-1">${currentMockQuestion.modelAnswer.hanzi}</div>
+          <div class="text-xs text-amber-900 font-mono mb-1">${currentMockQuestion.modelAnswer.pinyin}</div>
+          <div class="text-xs text-slate-600 mb-2">${currentMockQuestion.modelAnswer.translation}</div>
+          <div class="text-xs bg-white p-2 rounded border border-amber-200 text-amber-950 font-medium">
+            <strong>사용된 성어:</strong> ${currentMockQuestion.modelAnswer.idiom.word} - ${currentMockQuestion.modelAnswer.idiom.meaning}
+          </div>
+          <button onclick="speakText('${currentMockQuestion.modelAnswer.hanzi.replace(/'/g, "\\'")}')" class="mt-2 text-xs font-bold text-amber-700 hover:text-amber-900 flex items-center gap-1">
+            <i class="fa-solid fa-volume-high"></i> 원어민 음성으로 답안 듣기
+          </button>
+        `;
+      } else {
+        box.classList.add('hidden');
+        btnText.textContent = "모범답안 확인";
+      }
+    }
+
+    function renderQuiz() {
+      const q = QUIZ_DATA[currentQuizIndex];
+      const container = document.getElementById('quizContainer');
+      const nextBtn = document.getElementById('quizNextBtn');
+      quizAnswered = false;
+      nextBtn.classList.add('hidden');
+
+      document.getElementById('quizScoreText').textContent = `${quizScore} / ${QUIZ_DATA.length}`;
+
+      container.innerHTML = `
+        <div class="space-y-4">
+          <div class="flex items-center justify-between text-xs text-slate-500 font-semibold">
+            <span>문제 ${currentQuizIndex + 1} of ${QUIZ_DATA.length}</span>
+            <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700">성어 & 어휘 실력 점검</span>
+          </div>
+          <h3 class="text-base md:text-lg font-bold text-slate-900 leading-snug">
+            Q. ${q.question}
+          </h3>
+
+          <div class="space-y-2.5 pt-2">
+            ${q.options.map((opt, i) => `
+              <button onclick="checkQuizAnswer(${i})" id="quiz-opt-${i}" class="quiz-option-btn w-full text-left p-3.5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-800 text-sm font-semibold transition flex items-center justify-between">
+                <span>${i + 1}. ${opt}</span>
+                <i class="fa-regular fa-circle text-slate-300 opt-icon"></i>
+              </button>
+            `).join('')}
+          </div>
+
+          <div id="quizFeedbackBox" class="hidden mt-4 p-4 rounded-xl text-xs md:text-sm font-medium"></div>
+        </div>
+      `;
+    }
+
+    function checkQuizAnswer(selectedIndex) {
+      if (quizAnswered) return;
+      quizAnswered = true;
+
+      const q = QUIZ_DATA[currentQuizIndex];
+      const isCorrect = selectedIndex === q.answerIndex;
+      const feedbackBox = document.getElementById('quizFeedbackBox');
+      const nextBtn = document.getElementById('quizNextBtn');
+
+      if (isCorrect) {
+        quizScore++;
+        playBeep(900, 0.2);
+        feedbackBox.className = "mt-4 p-4 rounded-xl text-xs md:text-sm font-medium bg-emerald-50 border border-emerald-200 text-emerald-900";
+        feedbackBox.innerHTML = `
+          <div class="font-bold flex items-center gap-1.5 text-emerald-800 mb-1">
+            <i class="fa-solid fa-circle-check text-emerald-600"></i> 정답입니다! 축하합니다.
+          </div>
+          <div>${q.explanation}</div>
+        `;
+      } else {
+        playBeep(300, 0.3);
+        feedbackBox.className = "mt-4 p-4 rounded-xl text-xs md:text-sm font-medium bg-rose-50 border border-rose-200 text-rose-900";
+        feedbackBox.innerHTML = `
+          <div class="font-bold flex items-center gap-1.5 text-rose-800 mb-1">
+            <i class="fa-solid fa-circle-xmark text-rose-600"></i> 아쉽네요, 오답입니다!
+          </div>
+          <div class="mb-1"><strong>정답:</strong> ${q.options[q.answerIndex]}</div>
+          <div>${q.explanation}</div>
+        `;
+      }
+
+      feedbackBox.classList.remove('hidden');
+
+      // Highlight selected and correct buttons
+      for (let i = 0; i < q.options.length; i++) {
+        const btn = document.getElementById(`quiz-opt-${i}`);
+        const icon = btn.querySelector('.opt-icon');
+        if (i === q.answerIndex) {
+          btn.classList.add('bg-emerald-100', 'border-emerald-400', 'text-emerald-900');
+          icon.className = "fa-solid fa-circle-check text-emerald-600";
+        } else if (i === selectedIndex && !isCorrect) {
+          btn.classList.add('bg-rose-100', 'border-rose-400', 'text-rose-900');
+          icon.className = "fa-solid fa-circle-xmark text-rose-600";
+        }
+      }
+
+      document.getElementById('quizScoreText').textContent = `${quizScore} / ${QUIZ_DATA.length}`;
+      nextBtn.classList.remove('hidden');
+    }
+
+    function nextQuizQuestion() {
+      if (currentQuizIndex < QUIZ_DATA.length - 1) {
+        currentQuizIndex++;
+        renderQuiz();
+      } else {
+        // Complete Quiz View
+        const container = document.getElementById('quizContainer');
+        const nextBtn = document.getElementById('quizNextBtn');
+        nextBtn.classList.add('hidden');
+
+        container.innerHTML = `
+          <div class="text-center py-8 space-y-4">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-3xl mx-auto shadow-sm">
+              <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h3 class="text-xl font-black text-slate-900">퀴즈 완료!</h3>
+            <p class="text-sm text-slate-600">
+              최종 점수: <strong class="text-red-600 text-lg">${quizScore}</strong> / ${QUIZ_DATA.length} 문제 정답
+            </p>
+            <div class="text-xs text-slate-500 max-w-sm mx-auto">
+              ${quizScore >= 6 ? '대단합니다! 핵심 성어와 표현을 완벽히 숙지하셨습니다.' : '틀린 성어는 모범답안 탭과 성어 모음장에서 복습해 보세요!'}
+            </div>
+            <button onclick="resetQuiz()" class="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md transition">
+              다시 도전하기
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    function resetQuiz() {
+      currentQuizIndex = 0;
+      quizScore = 0;
+      renderQuiz();
+    }
+
+    const ALL_IDIOMS = [
+      { word: "物美价廉", pinyin: "wù měi jià lián", mean: "물건이 좋고 가격이 저렴하다 (가성비 최고)", ex: "这里的菜不仅味道好，而且物美价廉。" },
+      { word: "一举两得", pinyin: "yì jǔ liǎng dé", mean: "하나의 행동으로 두 가지 이익을 얻다 (일석이조)", ex: "骑车既锻炼身体又能呼吸空气，真是一举两得。" },
+      { word: "全神贯注", pinyin: "quán shén guàn zhù", mean: "온 정신을 한곳에 집중하다 (몰입하다)", ex: "坐在前排能全神贯注地听课。" },
+      { word: "劳逸结合", pinyin: "láo yì jié hé", mean: "일과 휴식을 적절히 배합하다", ex: "工作之余看电视，可以做到劳逸结合。" },
+      { word: "事半功倍", pinyin: "shì bàn gōng bèi", mean: "적은 노력으로 큰 성과를 거두다", ex: "在安静的环境学习，效率能事半功倍。" },
+      { word: "求之不得", pinyin: "qiú zhī bù dé", mean: "바라던 바이다 (더없이 환영하다)", ex: "一起去吃汉堡？真是求之不得！" },
+      { word: "坚持不懈", pinyin: "jiān chí bú xiè", mean: "어떤 일을 끊임없이 꾸준히 이어가다", ex: "学游泳只要坚持不懈，就一定能学会。" },
+      { word: "不见不散", pinyin: "bú jiàn bú sàn", mean: "만날 때까지 헤어지지 않는다 (꼭 만나자)", ex: "下午两点校门口，不见不散！" },
+      { word: "色香味俱全", pinyin: "sè xiāng wèi jù quán", mean: "색과 향과 맛 삼박자가 모두 완벽하다", ex: "妈妈做的菜色香味俱全。" },
+      { word: "四通八达", pinyin: "sì tōng bā dá", mean: "길이나 교통망이 사방으로 편리하게 뚫려있다", ex: "这里的地铁四通八达，非常方便。" },
+      { word: "名不虚传", pinyin: "míng bù xū chuán", mean: "소문이나 명성이 헛되지 않다", ex: "这家餐厅的招牌菜真是名不虚传！" },
+      { word: "回味无穷", pinyin: "huí wèi wú qióng", mean: "맛이나 감동의 여운이 끝없이 오래 남다", ex: "这道甜点令人回味无穷。" },
+      { word: "乐意奉陪", pinyin: "lè yì fèng péi", mean: "기꺼이 상대와 어울려 동행하다", ex: "你想打球？我非常乐意奉陪！" },
+      { word: "大饱口福", pinyin: "dà bǎo kǒu fú", mean: "맛있는 음식을 실컷 먹어 입 호강을 누리다", ex: "今天在聚会上真是大饱口福了。" },
+      { word: "一路顺风", pinyin: "yí lù shùn fēng", mean: "여행길이 순탄하고 평안하기를 빌다", ex: "祝你下周旅行一路顺风！" },
+      { word: "延年益寿", pinyin: "yán nián yì shòu", mean: "수명을 늘려 오래오래 건강하게 살다", ex: "送长辈保健品，祝他们延年益寿。" },
+      { word: "喜出望外", pinyin: "xǐ chū wàng wài", mean: "뜻밖의 일에 크게 기뻐하다", ex: "收到这份生日礼物，奶奶喜出望外。" },
+      { word: "好评如潮", pinyin: "hǎo píng rú cháo", mean: "칭찬과 호평이 조수처럼 쏟아지다", ex: "那部新上映的电影好评如潮。" },
+      { word: "翘首以盼", pinyin: "qiáo shǒu yǐ pàn", mean: "목을 길게 빼고 간절히 고대하다", ex: "大家都在对这部电影翘首以盼。" },
+      { word: "别具一格", pinyin: "bié jù yì gé", mean: "독특한 격조와 개성을 지니다", ex: "这件新衣服的设计真是别具一格。" }
+    ];
+
+    function renderIdioms(filter = '') {
+      const grid = document.getElementById('idiomGrid');
+      grid.innerHTML = '';
+
+      const filtered = ALL_IDIOMS.filter(item => 
+        item.word.includes(filter) || 
+        item.pinyin.toLowerCase().includes(filter.toLowerCase()) || 
+        item.mean.includes(filter)
+      );
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full py-8 text-center text-sm text-slate-400">일치하는 숙어가 없습니다.</div>`;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const card = document.createElement('div');
+        card.className = "p-4 rounded-xl border border-slate-200 bg-white hover:border-red-300 hover:shadow-md transition space-y-2 flex flex-col justify-between";
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-base font-extrabold text-slate-900">${item.word}</span>
+              <button onclick="speakText('${item.word}')" class="text-red-600 hover:text-red-700 text-xs p-1" title="발음 듣기">
+                <i class="fa-solid fa-volume-high"></i>
+              </button>
+            </div>
+            <div class="text-xs font-mono text-red-600 font-semibold mb-1.5">${item.pinyin}</div>
+            <p class="text-xs text-slate-700 font-medium leading-relaxed">${item.mean}</p>
+          </div>
+          <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-500 italic">
+            예문: ${item.ex}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function filterIdioms() {
+      const val = document.getElementById('idiomSearchInput').value.trim();
+      renderIdioms(val);
+    }
+
+    // Toast notification utility
+    let toastTimeout = null;
+    function showToast(msg, type = 'info') {
+      const toast = document.getElementById('toastBox');
+      const icon = document.getElementById('toastIcon');
+      const text = document.getElementById('toastMsg');
+
+      text.textContent = msg;
+      if (type === 'success') {
+        icon.className = "fa-solid fa-circle-check text-emerald-400 text-sm";
+      } else if (type === 'error') {
+        icon.className = "fa-solid fa-triangle-exclamation text-rose-400 text-sm";
+      } else {
+        icon.className = "fa-solid fa-circle-info text-blue-400 text-sm";
+      }
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+
+    // Toggle Pinyin Visibility
+    document.getElementById('togglePinyinBtn').addEventListener('click', () => {
+      isPinyinVisible = !isPinyinVisible;
+      document.querySelectorAll('.pinyin-block').forEach(el => {
+        if (isPinyinVisible) {
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      });
+      document.getElementById('pinyinBtnLabel').textContent = isPinyinVisible ? "병음 항상 보기" : "병음 숨기기 (도전)";
+      showToast(isPinyinVisible ? "병음이 활성화되었습니다." : "병음이 숨겨졌습니다. 한자 테스트 모드!", "info");
+    });
+
+    // Speed button
+    document.getElementById('audioSpeedBtn').addEventListener('click', () => {
+      if (speechRate === 1.0) {
+        speechRate = 0.8;
+      } else if (speechRate === 0.8) {
+        speechRate = 1.2;
+      } else {
+        speechRate = 1.0;
+      }
+      document.getElementById('speedLabel').textContent = `${speechRate}x`;
+      showToast(`발음 속도: ${speechRate}배속`, "info");
+    });
+
+    // Keyboard Shortcuts (Left / Right arrows for question switching)
+    window.addEventListener('keydown', (e) => {
+      // Only when not typing in inputs
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowLeft') {
+        prevQuestion();
+      } else if (e.key === 'ArrowRight') {
+        nextQuestion();
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initSpeech();
+      renderQuestionList();
+      renderQuestionDetail();
+      renderQuiz();
+    });
+  </script>
+</body>
+</html>
